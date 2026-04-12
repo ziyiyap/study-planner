@@ -3,9 +3,9 @@ from services.scoring_service import get_all_priorities
 from datetime import date, timedelta
 
 def get_daily_hours():
-    result = SETTINGS.query.filter_by(key = "daily_hours").first()
+    result = SETTINGS.query.filter_by(key = "daily_hours").first() #returns None if no result is found
     if result is None:
-        return 4.0
+        return 4.0 #default to 4 hours per day
     return float(result.value)
 
 def allocate_time(priorities, daily_hours): #priorities = get_all_priorities()
