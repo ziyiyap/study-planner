@@ -2,6 +2,12 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 db = SQLAlchemy()
 
+class SETTINGS(db.Model):
+    __tablename__ = 'settings'
+
+    key = db.Column(db.String(50), primary_key = True)
+    value = db.Column(db.String(255))
+
 class PDF_DOCUMENTS(db.Model):
     __tablename__ = "pdf_docs"
 

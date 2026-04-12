@@ -6,6 +6,9 @@ def calculate_effective_difficulty(objective, passion):
 
 def calculate_priority(subject):
     days_left = (subject.exam_date - date.today()).days
+
+    if days_left <= 0:
+        return 0
     priority_score = (1-subject.progress) * (1/days_left) * subject.effective_difficulty * subject.importance_weight
     return priority_score
 
