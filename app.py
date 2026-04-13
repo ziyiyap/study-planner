@@ -4,7 +4,7 @@ from routes.ai import ai
 from routes.dashboard import dashboard
 from routes.planner import planner
 from routes.progress import progress
-from routes.subjects import subjects
+from routes.subjects import subjects_bp
 import config 
 from models.database import init_db
 import os
@@ -22,7 +22,7 @@ app.register_blueprint(ai)
 app.register_blueprint(dashboard)
 app.register_blueprint(planner)
 app.register_blueprint(progress)
-app.register_blueprint(subjects)
+app.register_blueprint(subjects_bp)
 
 init_db(app)
 

@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}Subjects — StudyOS{% endblock %}
+
+{% block content %}
+<div class="page-header flex items-center justify-between">
+    <div>
+        <div class="page-title">Subjects</div>
+        <div class="page-subtitle">Manage your subjects, deadlines, and uploaded materials.</div>
+    </div>
+    <button class="btn btn-primary" onclick="openModal()">+ Add Subject</button>
+</div>
+
+<!-- SUBJECT LIST -->
+<div class="flex-col gap-12">
+    {% if subjects %}
+        {% for subject in subjects %}
+        <div class="card">
+            <div class="flex items-center justify-between mb-12">
+                <div class="flex items-center gap-12">
+                    <div>
+                        <div style="font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--text-primary);">
+                            {{ subject.name }}
+                        </div>
+                        <div style="font-size:12px; color:var(--text-muted); margin-top:2px;">
+                            Exam: {{ subject.exam_date.strftime('%d %b %Y') }}
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-8">
+                    {% set days_left = (subject.exam_date - today).days %}
+                    <span class="tag {% if days_left <= 3 %}tag-red{% elif days_left <= 7 %}tag-amber{% else %}tag-green{% endif %}">
+                        {{ days_left }}d left
+                    </span>
+                    <span class="tag tag-purple">
+                        diff {{ "%.1f"|format(subject.effective_difficulty) }}
+                    </span>
+                    <button class="btn btn-ghost btn-sm" onclick="openUpdateModal({{ subject.id }}, {{ subject.progress }})">
+                        Update
+                    </button>
+                    <form action="/subjects/delete" method="POST" style="display:inline;">
+                        <input type="hidden" name="subject_id" value="{{ subject.id }}">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="grid-3" style="gap:12px;">
+                <div class="stat-chip">
+                    <div class="stat-chip-label">Progress</div>
+                    <div class="stat-chip-value">{{ (subject.progress * 100)|int }}%</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width:{{ (subject.progress * 100)|int }}%"></div>
+                    </div>
+                </div>
+                <div class="stat-chip">
+                    <div class="stat-chip-label">Passion</div>
+                    <div class="stat-chip-value">{{ "%.1f"|format(subject.passion_level) }}</div>
+                    <div class="stat-chip-sub">/ 1.0</div>
+                </div>
+                <div class="stat-chip">
+                    <div class="stat-chip-label">Importance</div>
+                    <div class="stat-chip-value">{{ "%.1f"|format(subject.importance_weight) }}</div>
+                    <div class="stat-chip-sub">weight</div>
+                </div>
+            </div>
+
+            {% if subject.pdf %}
+            <div style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text-muted);">
+                📄 {{ subject.pdf.filename }} — difficulty score: {{ "%.2f"|format(subject.pdf.objective_difficulty) }}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card">
+            <div class="empty-state">
+                <div class="empty-state-icon">◈</div>
+                <div class="empty-state-text">No subjects yet. Add your first subject to get started.</div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- ADD SUBJECT MODAL -->
+<div class="modal-overlay" id="add-modal">
+    <div class="modal">
+        <div class="modal-title">Add Subject</div>
+        <form action="/subjects/add" method="POST" enctype="multipart/form-data">
+            <div class="flex-col gap-12">
+                <div class="form-group">
+                    <label class="form-label">Subject Name</label>
+                    <input class="form-input" type="text" name="name" placeholder="e.g. Advanced Mathematics" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Exam Date</label>
+                    <input class="form-input" type="date" name="exam_date" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">How does studying this feel?</label>
+                    <select class="form-input" name="passion_level">
+                        <option value="0.2">😩 I avoid it as long as possible</option>
+                        <option value="0.5">😐 I do it but don't enjoy it</option>
+                        <option value="0.75" selected>🙂 I don't mind it</option>
+                        <option value="1.0">😄 I actually look forward to it</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Importance Weight (1.0 – 3.0)</label>
+                    <input class="form-input" type="number" name="importance_weight"
+                           min="1.0" max="3.0" step="0.1" value="1.5">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Upload Notes / Syllabus (optional)</label>
+                    <input class="form-input" type="file" name="pdf" accept=".pdf">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Subject</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- UPDATE PROGRESS MODAL -->
+<div class="modal-overlay" id="update-modal">
+    <div class="modal">
+        <div class="modal-title">Update Progress</div>
+        <form action="/subjects/update" method="POST">
+            <input type="hidden" name="subject_id" id="update-subject-id">
+            <div class="form-group">
+                <label class="form-label">Progress (0.0 – 1.0)</label>
+                <input class="form-input" type="number" name="progress"
+                       id="update-progress" min="0" max="1" step="0.01">
+            </div>
+            <div class="modal-actions">
+                <button type="button" class="btn btn-ghost" onclick="closeUpdateModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function openModal()        { document.getElementById('add-modal').classList.add('open'); }
+function closeModal()       { document.getElementById('add-modal').classList.remove('open'); }
+function closeUpdateModal() { document.getElementById('update-modal').classList.remove('open'); }
+
+function openUpdateModal(id, progress) {
+    document.getElementById('update-subject-id').value = id;
+    document.getElementById('update-progress').value   = progress;
+    document.getElementById('update-modal').classList.add('open');
+}
+
+document.getElementById('add-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+document.getElementById('update-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeUpdateModal();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Calendar — StudyOS{% endblock %}
+
+{% block content %}
+<div class="page-header flex items-center justify-between">
+    <div>
+        <div class="page-title">Calendar</div>
+        <div class="page-subtitle">Your weekly study schedule at a glance.</div>
+    </div>
+    <a href="/plan" class="btn btn-primary">⟳ Regenerate</a>
+</div>
+
+<!-- WEEK GRID -->
+<div class="card">
+    <div class="card-title">▦ This Week</div>
+    <div id="week-grid" style="display:grid; grid-template-columns: repeat(7, 1fr); gap:10px;">
+        {% set days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
+        {% for i in range(7) %}
+        {% set day_sessions = sessions_by_day[i] if sessions_by_day is defined else [] %}
+        <div style="display:flex; flex-direction:column; gap:6px;">
+
+            <!-- Day header -->
+            <div style="text-align:center; padding:6px 4px; border-radius:var(--radius-sm);
+                        background:var(--bg-elevated); border:1px solid var(--border);">
+                <div style="font-size:10px; font-weight:600; letter-spacing:0.08em;
+                             text-transform:uppercase; color:var(--text-muted);">
+                    {{ days[i] }}
+                </div>
+                <div style="font-family:'Syne',sans-serif; font-size:16px; font-weight:700;
+                             color:var(--text-primary); margin-top:2px;">
+                    {{ week_dates[i].day if week_dates is defined else '' }}
+                </div>
+            </div>
+
+            <!-- Sessions for this day -->
+            {% if day_sessions %}
+                {% for session in day_sessions %}
+                <div style="background:var(--purple-glow); border:1px solid var(--purple-border);
+                             border-radius:var(--radius-sm); padding:8px;
+                             font-size:11px; color:var(--text-primary);">
+                    <div style="font-weight:600; color:var(--purple); margin-bottom:2px;">
+                        Subject #{{ session.subject_id }}
+                    </div>
+                    <div style="color:var(--text-muted);">
+                        {{ (session.allocated_hours * 60)|int }} min
+                    </div>
+                    <div style="margin-top:4px;">
+                        <span class="tag {% if session.status == 'completed' %}tag-green{% elif session.status == 'missed' %}tag-red{% else %}tag-purple{% endif %}"
+                              style="font-size:10px; padding:1px 6px;">
+                            {{ session.status }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div style="background:var(--bg-elevated); border:1px dashed var(--border);
+                             border-radius:var(--radius-sm); padding:12px 8px;
+                             text-align:center; color:var(--text-muted); font-size:11px;">
+                    Free
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}Progress — StudyOS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">Progress</div>
+    <div class="page-subtitle">Track your study performance across all subjects.</div>
+</div>
+
+<!-- OVERALL STATS -->
+<div class="grid-3 mb-16">
+    <div class="stat-chip">
+        <div class="stat-chip-label">Total Sessions</div>
+        <div class="stat-chip-value">{{ total_sessions }}</div>
+        <div class="stat-chip-sub">all time</div>
+    </div>
+    <div class="stat-chip">
+        <div class="stat-chip-label">Completed</div>
+        <div class="stat-chip-value">{{ completed_sessions }}</div>
+        <div class="stat-chip-sub">
+            {% if total_sessions > 0 %}
+                {{ ((completed_sessions / total_sessions) * 100)|int }}% completion rate
+            {% else %}
+                no sessions yet
+            {% endif %}
+        </div>
+    </div>
+    <div class="stat-chip">
+        <div class="stat-chip-label">Missed</div>
+        <div class="stat-chip-value">{{ missed_sessions }}</div>
+        <div class="stat-chip-sub">sessions missed</div>
+    </div>
+</div>
+
+<!-- PER SUBJECT PROGRESS -->
+<div class="card mb-16">
+    <div class="card-title">◈ Subject Breakdown</div>
+    <div class="flex-col gap-12">
+        {% if subjects %}
+            {% for subject in subjects %}
+            <div style="display:flex; flex-direction:column; gap:6px;">
+                <div class="flex items-center justify-between">
+                    <span style="font-size:13.5px; font-weight:500; color:var(--text-primary);">
+                        {{ subject.name }}
+                    </span>
+                    <div class="flex items-center gap-8">
+                        <span style="font-size:12px; color:var(--text-muted);">
+                            {{ (subject.progress * 100)|int }}%
+                        </span>
+                        {% set days_left = (subject.exam_date - today).days %}
+                        <span class="tag {% if days_left <= 3 %}tag-red{% elif days_left <= 7 %}tag-amber{% else %}tag-green{% endif %}">
+                            {{ days_left }}d left
+                        </span>
+                    </div>
+                </div>
+                <div class="progress-bar" style="height:6px;">
+                    <div class="progress-fill" style="width:{{ (subject.progress * 100)|int }}%"></div>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted);">
+                    Difficulty {{ "%.2f"|format(subject.effective_difficulty) }} ·
+                    Importance {{ "%.1f"|format(subject.importance_weight) }} ·
+                    Passion {{ "%.1f"|format(subject.passion_level) }}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">◎</div>
+                <div class="empty-state-text">No subjects tracked yet.</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- SESSION LOG -->
+<div class="card">
+    <div class="card-title">⬡ Recent Sessions</div>
+    <div class="flex-col gap-8">
+        {% if recent_sessions %}
+            {% for session in recent_sessions %}
+            <div class="task-item">
+                <div style="flex:1; display:flex; flex-direction:column; gap:3px;">
+                    <div class="flex items-center justify-between">
+                        <span style="font-size:13px; font-weight:500;">
+                            Subject #{{ session.subject_id }}
+                        </span>
+                        <span style="font-size:12px; color:var(--text-muted);">
+                            {{ session.date }}
+                        </span>
+                    </div>
+                    <div style="font-size:12px; color:var(--text-muted);">
+                        Allocated {{ (session.allocated_hours * 60)|int }} min ·
+                        Actual {{ (session.actual_hours * 60)|int }} min
+                    </div>
+                </div>
+                <span class="tag {% if session.status == 'completed' %}tag-green{% elif session.status == 'missed' %}tag-red{% else %}tag-purple{% endif %}">
+                    {{ session.status }}
+                </span>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">⬡</div>
+                <div class="empty-state-text">No session history yet.</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
