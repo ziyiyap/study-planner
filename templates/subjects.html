@@ -60,7 +60,7 @@
                 <div class="stat-chip">
                     <div class="stat-chip-label">Importance</div>
                     <div class="stat-chip-value">{{ "%.1f"|format(subject.importance_weight) }}</div>
-                    <div class="stat-chip-sub">weight</div>
+                    <div class="stat-chip-sub">/ 3.0</div>
                 </div>
             </div>
 
@@ -83,18 +83,21 @@
 
 <!-- ADD SUBJECT MODAL -->
 <div class="modal-overlay" id="add-modal">
-    <div class="modal">
+    <div class="modal" style="max-height:90vh; overflow-y:auto;">
         <div class="modal-title">Add Subject</div>
         <form action="/subjects/add" method="POST" enctype="multipart/form-data">
             <div class="flex-col gap-12">
+
                 <div class="form-group">
                     <label class="form-label">Subject Name</label>
                     <input class="form-input" type="text" name="name" placeholder="e.g. Advanced Mathematics" required>
                 </div>
+
                 <div class="form-group">
                     <label class="form-label">Exam Date</label>
                     <input class="form-input" type="date" name="exam_date" required>
                 </div>
+
                 <div class="form-group">
                     <label class="form-label">How does studying this feel?</label>
                     <select class="form-input" name="passion_level">
@@ -104,15 +107,64 @@
                         <option value="1.0">😄 I actually look forward to it</option>
                     </select>
                 </div>
+
+                <!-- IMPORTANCE SLIDER -->
                 <div class="form-group">
-                    <label class="form-label">Importance Weight (1.0 – 3.0)</label>
-                    <input class="form-input" type="number" name="importance_weight"
-                           min="1.0" max="3.0" step="0.1" value="1.5">
+                    <label class="form-label">
+                        How important is this subject to you?
+                        <span id="importance-display" style="color:var(--purple); font-weight:600; margin-left:6px;">5 / 10</span>
+                    </label>
+                    <input type="range" name="importance_weight" id="importance-slider"
+                           min="1" max="10" step="1" value="5"
+                           oninput="document.getElementById('importance-display').textContent = this.value + ' / 10'"
+                           style="width:100%; accent-color:var(--purple); cursor:pointer;">
+                    <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin-top:2px;">
+                        <span>Not important</span>
+                        <span>Extremely important</span>
+                    </div>
                 </div>
+
+                <!-- PDF UPLOAD -->
                 <div class="form-group">
                     <label class="form-label">Upload Notes / Syllabus (optional)</label>
-                    <input class="form-input" type="file" name="pdf" accept=".pdf">
+                    <input class="form-input" type="file" name="pdf" accept=".pdf"
+                           onchange="handlePdfChange(this)">
+                    <span id="pdf-hint" style="font-size:11px; color:var(--text-muted); margin-top:4px; display:block;">
+                        If uploaded, difficulty will be auto-detected by AI.
+                    </span>
                 </div>
+
+                <!-- MANUAL DIFFICULTY TOGGLE -->
+                <div class="form-group">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:13px; color:var(--text-secondary);"
+                           onclick="toggleDiffInput()">
+                        <span id="diff-toggle-dot" style="
+                            width:16px; height:16px; border-radius:50%;
+                            border:2px solid var(--text-muted);
+                            display:inline-flex; align-items:center; justify-content:center;
+                            flex-shrink:0; transition:all 0.2s; font-size:10px; color:white;">
+                        </span>
+                        Set objective difficulty manually
+                    </label>
+                </div>
+
+                <div id="obj-diff-group" style="display:none;">
+                    <div class="form-group">
+                        <label class="form-label">
+                            How difficult is this subject?
+                            <span id="diff-display" style="color:var(--purple); font-weight:600; margin-left:6px;">5 / 10</span>
+                        </label>
+                        <input type="range" name="objective_difficulty" id="diff-slider"
+                               min="0" max="10" step="1" value="5"
+                               oninput="document.getElementById('diff-display').textContent = this.value + ' / 10'"
+                               style="width:100%; accent-color:var(--purple); cursor:pointer;">
+                        <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin-top:2px;">
+                            <span>Very easy</span>
+                            <span>Extremely hard</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
@@ -129,9 +181,18 @@
         <form action="/subjects/update" method="POST">
             <input type="hidden" name="subject_id" id="update-subject-id">
             <div class="form-group">
-                <label class="form-label">Progress (0.0 – 1.0)</label>
-                <input class="form-input" type="number" name="progress"
-                       id="update-progress" min="0" max="1" step="0.01">
+                <label class="form-label">
+                    How much have you completed?
+                    <span id="progress-display" style="color:var(--purple); font-weight:600; margin-left:6px;">0%</span>
+                </label>
+                <input type="range" name="progress" id="update-progress"
+                       min="0" max="100" step="1" value="0"
+                       oninput="document.getElementById('progress-display').textContent = this.value + '%'"
+                       style="width:100%; accent-color:var(--purple); cursor:pointer;">
+                <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin-top:2px;">
+                    <span>0%</span>
+                    <span>100%</span>
+                </div>
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-ghost" onclick="closeUpdateModal()">Cancel</button>
@@ -144,13 +205,54 @@
 
 {% block extra_scripts %}
 <script>
-function openModal()        { document.getElementById('add-modal').classList.add('open'); }
+let diffToggled = false;
+
+function toggleDiffInput() {
+    diffToggled = !diffToggled;
+    const group = document.getElementById('obj-diff-group');
+    const dot = document.getElementById('diff-toggle-dot');
+    if (diffToggled) {
+        group.style.display = 'block';
+        dot.style.background = 'var(--purple)';
+        dot.style.borderColor = 'var(--purple)';
+        dot.innerHTML = '&#10003;';
+    } else {
+        group.style.display = 'none';
+        dot.style.background = 'transparent';
+        dot.style.borderColor = 'var(--text-muted)';
+        dot.innerHTML = '';
+    }
+}
+
+function handlePdfChange(input) {
+    const hint = document.getElementById('pdf-hint');
+    if (input.files && input.files.length > 0) {
+        hint.textContent = 'AI will auto-detect difficulty from your PDF.';
+        hint.style.color = 'var(--purple)';
+    } else {
+        hint.textContent = 'If uploaded, difficulty will be auto-detected by AI.';
+        hint.style.color = 'var(--text-muted)';
+    }
+}
+
+function openModal() {
+    diffToggled = false;
+    document.getElementById('obj-diff-group').style.display = 'none';
+    const dot = document.getElementById('diff-toggle-dot');
+    dot.style.background = 'transparent';
+    dot.style.borderColor = 'var(--text-muted)';
+    dot.innerHTML = '';
+    document.getElementById('add-modal').classList.add('open');
+}
+
 function closeModal()       { document.getElementById('add-modal').classList.remove('open'); }
 function closeUpdateModal() { document.getElementById('update-modal').classList.remove('open'); }
 
 function openUpdateModal(id, progress) {
+    const pct = Math.round(progress * 100);
     document.getElementById('update-subject-id').value = id;
-    document.getElementById('update-progress').value   = progress;
+    document.getElementById('update-progress').value = pct;
+    document.getElementById('progress-display').textContent = pct + '%';
     document.getElementById('update-modal').classList.add('open');
 }
 

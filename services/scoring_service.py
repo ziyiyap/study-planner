@@ -2,7 +2,7 @@ from models.database import db, Subjects
 from datetime import date
 
 def calculate_effective_difficulty(objective, passion):
-    return objective * (2 - passion)
+    return float(objective) * (2 - float(passion))
 
 def calculate_priority(subject):
     days_left = (subject.exam_date - date.today()).days

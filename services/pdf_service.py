@@ -37,7 +37,7 @@ def clean_text(text):
 
     return " ".join(line_list)
     
-def chunk_text(text, chunk_size = 1000):
+def chunk_text(text, chunk_size = 3000):
     chunk = []
     lines = text.strip().split()
 

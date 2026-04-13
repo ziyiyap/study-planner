@@ -39,7 +39,7 @@
                              border-radius:var(--radius-sm); padding:8px;
                              font-size:11px; color:var(--text-primary);">
                     <div style="font-weight:600; color:var(--purple); margin-bottom:2px;">
-                        Subject #{{ session.subject_id }}
+                        {{ subjects_map[session.subject_id] }}
                     </div>
                     <div style="color:var(--text-muted);">
                         {{ (session.allocated_hours * 60)|int }} min

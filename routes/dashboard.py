@@ -9,4 +9,6 @@ def dashb():
     today_session = STUDY_SESSIONS.query.filter_by(date=date.today()).all()
     upcoming_subjects = Subjects.query.order_by(Subjects.exam_date).all()
     unread_insights = AIInsight.query.filter_by(is_read = False).all()
-    return render_template("dashboard.html", today=date.today(), active_page="dashboard", today_sessions = today_session, upcoming_subjects = upcoming_subjects, unread_insights = unread_insights)
+
+    subject_map = {s.id : s.name for s in Subjects.query.all()}
+    return render_template("dashboard.html", today=date.today(), subjects_map = subject_map, active_page="dashboard", today_sessions = today_session, upcoming_subjects = upcoming_subjects, unread_insights = unread_insights)

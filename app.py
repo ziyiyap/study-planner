@@ -5,6 +5,7 @@ from routes.dashboard import dashboard
 from routes.planner import planner
 from routes.progress import progress
 from routes.subjects import subjects_bp
+from routes.calendar import calendar
 import config 
 from models.database import init_db
 import os
@@ -23,6 +24,7 @@ app.register_blueprint(dashboard)
 app.register_blueprint(planner)
 app.register_blueprint(progress)
 app.register_blueprint(subjects_bp)
+app.register_blueprint(calendar)
 
 init_db(app)
 

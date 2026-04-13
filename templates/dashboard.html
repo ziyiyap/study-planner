@@ -43,7 +43,7 @@
                         {% if session.status == 'completed' %}✓{% endif %}
                     </div>
                     <div class="task-name {% if session.status == 'completed' %}done{% endif %}">
-                        Subject #{{ session.subject_id }}
+                        {{ subjects_map[session.subject_id] }}
                     </div>
                     <span class="task-duration">
                         {{ (session.allocated_hours * 60) | int }} min

@@ -29,6 +29,9 @@ def allocate_time(priorities, daily_hours): #priorities = get_all_priorities()
 
 def generate_schedule(days = 7):
 
+    STUDY_SESSIONS.query.filter(STUDY_SESSIONS.date >= date.today()).filter(STUDY_SESSIONS.status == "pending").delete()
+    db.session.commit()
+
     for day in range(days):
         for t in allocate_time(get_all_priorities(), get_daily_hours()):
             subject_session = STUDY_SESSIONS(

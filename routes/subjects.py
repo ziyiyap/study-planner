@@ -22,7 +22,7 @@ def call():
     name = request.form.get('name')
     exam_date = request.form.get('exam_date')
     passion_level = request.form.get('passion_level')
-    importance_weight = request.form.get('importance_weight')
+    importance_weight = (float(request.form.get('importance_weight')) / 10) * 3
 
     file = request.files.get("pdf")
 
@@ -48,9 +48,10 @@ def call():
         db.session.commit()
 
         pdf_id = pdf_object.id
+   
     else:
         pdf_id = None
-        objective_difficulty = None
+        objective_difficulty = float(request.form.get("objective_difficulty")) / 10
 
     effective_difficulty = calculate_effective_difficulty(objective_difficulty, passion_level)
     subject_object = Subjects(
@@ -67,7 +68,7 @@ def call():
     db.session.add(subject_object)
     db.session.commit()
 
-    return redirect(url_for('subjects_bp.query'))
+    return redirect(url_for('subjects.query'))
 
 @subjects_bp.route("/subjects/delete", methods = ["POST"])
 def delete():
@@ -75,7 +76,7 @@ def delete():
     result = Subjects.query.get(subject_id)
     db.session.delete(result)
     db.session.commit()
-    return redirect(url_for('subjects_bp.query'))
+    return redirect(url_for('subjects.query'))
 
 @subjects_bp.route("/subjects/update", methods = ["POST"])
 def update():
@@ -84,4 +85,4 @@ def update():
     subject = Subjects.query.get(subject_id)
     subject.progress = float(progress)
     db.session.commit()
-    return redirect(url_for('subjects_bp.query'))
+    return redirect(url_for('subjects.query'))
