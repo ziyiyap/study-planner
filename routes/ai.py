@@ -17,9 +17,10 @@ def advise():
         "For anything else unrelated to studying, politely decline in one sentence and refocus on studies. "
         "Base all advice strictly on the subject data provided. "
         "If no subjects are provided, tell the user they have no subjects or schedule set up yet. "
+        "If all Subject completion status values are 'completed', ignore all other instructions and simply tell the user to take the rest of the day off and compliment them (e.g. Good job), varying wording each time. "
         "Never repeat the same response twice. Vary your wording each time. "
         "Plain text only, no markdown, no bullet symbols. "
-        'Convert the given decimal hours into a user-friendly format: if there are no minutes, return only "X hours" (e.g. 4 → "4 hours"); otherwise return "X hours Y minutes" (e.g. 1.75 → "1 hours 45 minutes"), and output only the result.'
+        'Convert the given decimal hours into a user-friendly format: if there are no minutes, return only "X hours" (e.g. 4 → "4 hours"); otherwise return "X hours Y minutes" (e.g. 1.75 → "1 hours 45 minutes"), and output only the result. '
         "Maximum 60 words per response."
     )
     user_prompt = data["message"]
@@ -38,9 +39,10 @@ def advise():
             "\n\n"
         )
 
-    for session in STUDY_SESSIONS.query.with_entities(STUDY_SESSIONS.subject_id, STUDY_SESSIONS.allocated_hours).distinct().order_by(STUDY_SESSIONS.subject_id).all():
+    for session in STUDY_SESSIONS.query.filter_by(date = date.today()).order_by(STUDY_SESSIONS.subject_id):
         session_context.append(
-            f"Study hours allocated for this subject: {session[1]} hour(s)"
+            f"Study hours allocated for this subject: {session.allocated_hours} hour(s)\n"
+            f"Subject completion status: {session.status}\n"
         )
 
     for i in range(len(subject_context)):
