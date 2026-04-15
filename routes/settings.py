@@ -1,24 +1,25 @@
-from flask import render_template, Blueprint, request
+from flask import render_template, Blueprint, request, redirect, url_for
 from models.database import SETTINGS, db
+import config
 
-settings = Blueprint("settings", __name__)
+settings_bp = Blueprint("settings", __name__)
 
-@settings.route("/settings", methods = ["GET", "POST"])
+@settings_bp.route("/settings", methods = ["GET", "POST"])
 def configuration():
-    #GET
-    data = SETTINGS.query.filter_by(key = "daily_hours").first()
+    if request.method == "POST":
+        user_hours = float(request.form.get("daily_hours"))
 
-    if data is None:
-        db.session.add(SETTINGS(key = "daily_hours", value = 4.0))
-    elif data.value is None:
-        data.value = 4.0
-
-    db.session.commit()
-    #POST
-    user_hours = request.form.get("daily_hours")
-
-    if user_hours is not None:
-        data.value = user_hours
+        data = SETTINGS.query.get("daily_hours")
+        if data:
+            data.value = user_hours
+        else:
+            db.session.add(SETTINGS(key='daily_hours', value = user_hours))
         db.session.commit()
-
-    return render_template("settings.html")
+        return redirect(url_for("planner.generate"))
+    elif request.method == "GET":
+        db_hours = SETTINGS.query.get("daily_hours")
+        if db_hours is None:
+            db.session.add(SETTINGS(key="daily_hours", value = 4.0))
+            db.session.commit()
+        db_hours = SETTINGS.query.get("daily_hours")
+        return render_template("settings.html", current_daily_hours = db_hours.value, ollama_model = config.OLLAMA_MODEL, active_page = "settings")

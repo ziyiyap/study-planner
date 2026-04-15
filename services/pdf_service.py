@@ -1,6 +1,8 @@
 import fitz
 import re
 from collections import Counter
+from utils.text_cleaner import clean_text
+from utils.chunker import chunk_text
 
 def extract_text(filepath):
     pdf = fitz.open(filepath)
@@ -21,30 +23,6 @@ def classify_document(text):
     if any(target in text for target in targets):
         return "math"
     return "text"
-
-def clean_text(text):
-    line_list = text.splitlines()
-    
-    count_line = Counter(line_list)
-
-
-    
-    for i,line in enumerate(line_list):
-        num_only = re.match("^\d+$",line.strip())
-
-        if len(line) < 30 or num_only or count_line[line] >=3:
-            line_list[i] = ""
-
-    return " ".join(line_list)
-    
-def chunk_text(text, chunk_size = 3000):
-    chunk = []
-    lines = text.strip().split()
-
-    for i in range(0, len(lines), chunk_size):
-        chunk.append(" ".join(lines[i:i+chunk_size])) #chunks text into 1000 word range
-
-    return chunk
 
 def process_pdf(filepath):
     text = extract_text(filepath)

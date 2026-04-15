@@ -90,6 +90,7 @@ def generate_insights(subjects): #list of objects
             "Consider passion level when making recommendations — low passion subjects may need motivational strategies. "
             "Be concise, direct, and practical. "
             "Respond in clear plain English with no preamble."
+            "Convert the given decimal hours into a user-friendly format: if there are no minutes and hours are non-zero, return only 'X hours' (e.g. 4 → '4 hours'); if there are minutes, return 'X hours Y minutes' (e.g. 1.75 → '1 hours 45 minutes'); if hours is 0, omit hours and return only 'Y minutes' (e.g. 0.5 → '30 minutes'); output only the result."
         )
     
     user_prompt = ""

@@ -29,7 +29,7 @@
     </div>
 </div>
 
-<div class="grid-2 gap-16">
+<div class="grid-2 gap-16 mb-16">
 
     <!-- TODAY'S TASKS -->
     <div class="card">
@@ -98,6 +98,34 @@
     </div>
 
 </div>
+
+<!-- AI INSIGHTS -->
+<div class="card" style="margin-bottom: 16px;">
+    <div class="card-title">◆ AI Insights</div>
+    <div class="flex-col gap-8">
+        {% if unread_insights %}
+            {% for insight in unread_insights %}
+            <div class="task-item" style="align-items: flex-start; gap: 10px;">
+                <div style="width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:6px; flex-shrink:0;"></div>
+                <div style="flex:1;">
+                    <div style="font-size:13px; line-height:1.55; color:var(--text-primary);">
+                        {{ insight.insight_text }}
+                    </div>
+                    <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+                        Generated {{ insight.generated_at.strftime('%d %b %Y, %H:%M') }} · unread
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">◆</div>
+                <div class="empty-state-text">No insights yet. Add a subject to generate recommendations.</div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
 {% endblock %}
 
 {% block extra_scripts %}

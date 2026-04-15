@@ -81,11 +81,50 @@
     {% endif %}
 </div>
 
+<!-- LOADING OVERLAY -->
+<div id="loading-overlay" style="
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 9999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+">
+    <div style="
+        background: var(--card-bg, #1a1a2e);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 32px 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        min-width: 280px;
+    ">
+        <div id="loading-spinner" style="
+            width: 36px; height: 36px;
+            border: 3px solid var(--border);
+            border-top-color: var(--purple);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        "></div>
+        <div style="font-family:'Syne',sans-serif; font-size:15px; font-weight:700; color:var(--text-primary);">
+            Processing Subject
+        </div>
+        <div id="loading-step" style="font-size:12px; color:var(--text-muted); text-align:center; max-width:200px; line-height:1.5;">
+            Saving subject data...
+        </div>
+    </div>
+</div>
+
 <!-- ADD SUBJECT MODAL -->
 <div class="modal-overlay" id="add-modal">
     <div class="modal" style="max-height:90vh; overflow-y:auto;">
         <div class="modal-title">Add Subject</div>
-        <form action="/subjects/add" method="POST" enctype="multipart/form-data">
+        <form id="add-subject-form" action="/subjects/add" method="POST" enctype="multipart/form-data">
             <div class="flex-col gap-12">
 
                 <div class="form-group">
@@ -127,7 +166,7 @@
                 <!-- PDF UPLOAD -->
                 <div class="form-group">
                     <label class="form-label">Upload Notes / Syllabus (optional)</label>
-                    <input class="form-input" type="file" name="pdf" accept=".pdf"
+                    <input class="form-input" type="file" name="pdf" id="pdf-input" accept=".pdf"
                            onchange="handlePdfChange(this)">
                     <span id="pdf-hint" style="font-size:11px; color:var(--text-muted); margin-top:4px; display:block;">
                         If uploaded, difficulty will be auto-detected by AI.
@@ -168,7 +207,7 @@
             </div>
             <div class="modal-actions">
                 <button type="button" class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-                <button type="submit" class="btn btn-primary">Add Subject</button>
+                <button type="submit" id="add-submit-btn" class="btn btn-primary">Add Subject</button>
             </div>
         </form>
     </div>
@@ -204,6 +243,11 @@
 {% endblock %}
 
 {% block extra_scripts %}
+<style>
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+</style>
 <script>
 let diffToggled = false;
 
@@ -261,6 +305,32 @@ document.getElementById('add-modal').addEventListener('click', function(e) {
 });
 document.getElementById('update-modal').addEventListener('click', function(e) {
     if (e.target === this) closeUpdateModal();
+});
+
+const loadingSteps = [
+    { delay: 0,    text: "Saving subject data..." },
+    { delay: 2000, text: "Extracting PDF text..." },
+    { delay: 5000, text: "Summarising content with AI..." },
+    { delay: 10000, text: "Analysing difficulty..." },
+    { delay: 16000, text: "Generating study insights..." },
+    { delay: 22000, text: "Almost done..." },
+];
+
+document.getElementById('add-subject-form').addEventListener('submit', function(e) {
+    const btn = document.getElementById('add-submit-btn');
+    const overlay = document.getElementById('loading-overlay');
+    const stepEl = document.getElementById('loading-step');
+    const hasPdf = document.getElementById('pdf-input').files.length > 0;
+
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+    overlay.style.display = 'flex';
+
+    const steps = hasPdf ? loadingSteps : [loadingSteps[0], loadingSteps[5]];
+
+    steps.forEach(({ delay, text }) => {
+        setTimeout(() => { stepEl.textContent = text; }, delay);
+    });
 });
 </script>
 {% endblock %}

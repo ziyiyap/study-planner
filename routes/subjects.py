@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for
 from datetime import date, datetime
-from models.database import db,Subjects, PDF_DOCUMENTS
+from models.database import db,Subjects, PDF_DOCUMENTS, AIInsight
 from datetime import date, datetime
 from services.pdf_service import process_pdf
-from services.ai_service import analyze_difficulty, summarize_pdf
+from services.ai_service import analyze_difficulty, summarize_pdf, generate_insights
 from services.scoring_service import calculate_effective_difficulty
 from werkzeug.utils import secure_filename
 import os
@@ -64,8 +64,22 @@ def call():
         importance_weight = float(importance_weight),
         created_at = datetime.now()
     )
-
     db.session.add(subject_object)
+    db.session.commit()
+    
+    all_subjects = Subjects.query.all()
+    insights = generate_insights(all_subjects)
+    check_insights = AIInsight.query.all()
+
+    if check_insights:
+        for sessions in check_insights:
+            db.session.delete(sessions)
+
+    ai_insight = AIInsight(
+        insight_text = insights,
+        generated_at = datetime.now()  
+    )
+    db.session.add(ai_insight)
     db.session.commit()
 
     return redirect(url_for('subjects.query'))
