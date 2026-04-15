@@ -20,7 +20,7 @@ def advise():
         "If all Subject completion status values are 'completed', ignore all other instructions and simply tell the user to take the rest of the day off and compliment them (e.g. Good job), varying wording each time. "
         "Never repeat the same response twice. Vary your wording each time. "
         "Plain text only, no markdown, no bullet symbols. "
-        'Convert the given decimal hours into a user-friendly format: if there are no minutes, return only "X hours" (e.g. 4 → "4 hours"); otherwise return "X hours Y minutes" (e.g. 1.75 → "1 hours 45 minutes"), and output only the result. '
+        "Convert the given decimal hours into a user-friendly format: if there are no minutes and hours are non-zero, return only 'X hours' (e.g. 4 → '4 hours'); if there are minutes, return 'X hours Y minutes' (e.g. 1.75 → '1 hours 45 minutes'); if hours is 0, omit hours and return only 'Y minutes' (e.g. 0.5 → '30 minutes'); output only the result."
         "Maximum 60 words per response."
     )
     user_prompt = data["message"]

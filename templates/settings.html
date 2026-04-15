@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Settings — StudyOS{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-title">Settings</div>
+    <div class="page-subtitle">Configure your study preferences.</div>
+</div>
+
+<div style="max-width: 520px;">
+
+    <!-- STUDY HOURS CARD -->
+    <div class="card mb-16">
+        <div class="card-title">⚙ Study Schedule</div>
+        <form action="/settings" method="POST">
+            <div class="flex-col gap-16">
+
+                <div class="form-group">
+                    <label class="form-label">
+                        How many hours can you study per day?
+                        <span id="hours-display" style="color:var(--purple); font-weight:600; margin-left:6px;">
+                            {{ current_daily_hours }} hrs
+                        </span>
+                    </label>
+                    <input type="range" name="daily_hours" id="hours-slider"
+                           min="1" max="12" step="0.5"
+                           value="{{ current_daily_hours }}"
+                           oninput="document.getElementById('hours-display').textContent = this.value + ' hrs'"
+                           style="width:100%; accent-color:var(--purple); cursor:pointer;">
+                    <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin-top:2px;">
+                        <span>1 hr</span>
+                        <span>12 hrs</span>
+                    </div>
+                </div>
+
+                <div style="padding:12px 14px; background:var(--bg-elevated); border:1px solid var(--border);
+                             border-radius:var(--radius-sm); font-size:12px; color:var(--text-secondary); line-height:1.6;">
+                    This value is used when generating your study schedule.
+                    Sessions are distributed proportionally across your subjects based on priority.
+                    Minimum session length is 30 minutes.
+                </div>
+
+                <div class="modal-actions" style="margin-top:0;">
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+    <!-- INFO CARD -->
+    <div class="card">
+        <div class="card-title">◎ About</div>
+        <div style="font-size:13px; color:var(--text-secondary); line-height:1.7;">
+            <div style="margin-bottom:8px;">
+                <span style="color:var(--text-primary); font-weight:500;">StudyOS</span> —
+                an AI-powered personal study planner.
+            </div>
+            <div style="color:var(--text-muted); font-size:12px;">
+                Model: <span style="color:var(--purple);">{{ ollama_model }}</span><br>
+                Database: SQLite (local)<br>
+                Sessions minimum: 30 minutes
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

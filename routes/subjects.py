@@ -83,6 +83,6 @@ def update():
     subject_id = request.form.get("subject_id")
     progress = request.form.get("progress")
     subject = Subjects.query.get(subject_id)
-    subject.progress = float(progress)
+    subject.progress = float(progress) /100
     db.session.commit()
     return redirect(url_for('subjects.query'))
